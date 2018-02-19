@@ -111,7 +111,7 @@ namespace Walmart_Reproc
                 catch (Exception e) { Console.WriteLine("Error: Issue with <LineItem Row(" + i + ")>/<ExtendedItemTotal>"); }
             }
 
-            //xDoc.Save(file);
+            xDoc.Save(file);
             Console.WriteLine("End File ----------------------------------------------------\n\n");
         }
 
