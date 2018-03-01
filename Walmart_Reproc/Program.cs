@@ -61,6 +61,7 @@ namespace Walmart_Reproc
         private static void XmlParse(string file)
         {
             XmlDocument xDoc = new XmlDocument();
+            xDoc.PreserveWhitespace = true;
             xDoc.Load(file);
             XmlNamespaceManager oManager = new XmlNamespaceManager(xDoc.NameTable);
             oManager.AddNamespace("ns", "http://www.spscommerce.com/RSX");
