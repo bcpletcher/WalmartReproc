@@ -118,11 +118,26 @@ namespace Walmart_Reproc
 
         private static string PercentConversion(string val)
         {
-            var decimalConv = Convert.ToDecimal(val);
-            var percentConv = decimalConv + (decimalConv * 2 / 100);
-            var newStringVal = percentConv.ToString("0.##");
+            var doubleConv = Convert.ToDouble(val);
+            var percentConv = doubleConv + (doubleConv * 2 / 100);
+
+            var newStringVal = DoFormat(percentConv);
 
             return newStringVal;
+        }
+
+        public static string DoFormat(double myNumber)
+        {
+            var s = string.Format("{0:0.00}", myNumber);
+
+            if (s.EndsWith("00"))
+            {
+                return ((int)myNumber).ToString();
+            }
+            else
+            {
+                return s;
+            }
         }
     }
 }
