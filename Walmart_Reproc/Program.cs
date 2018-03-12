@@ -67,77 +67,68 @@ namespace Walmart_Reproc
             oManager.AddNamespace("ns", "http://www.spscommerce.com/RSX");
 
             Console.WriteLine("Processing: " + file);
-            ////TermsDeferredAmountDue
-            try
-            {
-                var termsDeferredAmountDue = xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Header/ns:PaymentTerms/ns:TermsDeferredAmountDue[1]", oManager).InnerText;
-                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Header/ns:PaymentTerms/ns:TermsDeferredAmountDue[1]", oManager).InnerText = PercentConversion(termsDeferredAmountDue);
-            }
-            catch (Exception e) { Console.WriteLine("Warning: Element not found - <TermsDeferredAmountDue>"); }
 
-            ////TotalAmount
-            try
-            {
-                var totalAmount = xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:TotalAmount[1]", oManager).InnerText;
-                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:TotalAmount[1]", oManager).InnerText = PercentConversion(totalAmount);
-            }
-            catch (Exception e) { Console.WriteLine("Warning: Element not found - <TotalAmount>"); }
-
-            ////TotalNetSalesAmount
-            try
-            {
-                var totalNetSalesAmount = xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:TotalNetSalesAmount[1]", oManager).InnerText;
-                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:TotalNetSalesAmount[1]", oManager).InnerText = PercentConversion(totalNetSalesAmount);
-            }
-            catch (Exception e) { Console.WriteLine("Warning: Element not found - <TotalNetSalesAmount>"); }
-
-            ////InvoiceAmtDueByTermsDate
-            try
-            {
-                var invoiceAmtDueByTermsDate = xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:InvoiceAmtDueByTermsDate[1]", oManager).InnerText;
-                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:InvoiceAmtDueByTermsDate[1]", oManager).InnerText = PercentConversion(invoiceAmtDueByTermsDate);
-            }
-            catch (Exception e) { Console.WriteLine("Warning: Element not found - <InvoiceAmtDueByTermsDate>"); }
-
-
+            var grandTotal = 0.00;
+            
             var i = 0;
             foreach (XmlElement element in xDoc.SelectNodes("/ns:Invoices/ns:Invoice/ns:LineItems/ns:LineItem/ns:InvoiceLine", oManager))
             {
                 i += 1;
                 try
                 {
-                    var extendedItemTotal = element.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:LineItems/ns:LineItem[" + i + "]/ns:InvoiceLine/ns:ExtendedItemTotal[1]", oManager).InnerText;
-                    element.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:LineItems/ns:LineItem[" + i + "]/ns:InvoiceLine/ns:ExtendedItemTotal[1]", oManager).InnerText = PercentConversion(extendedItemTotal);
+                    var purchasePrice = Convert.ToDouble(element.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:LineItems/ns:LineItem[" + i + "]/ns:InvoiceLine/ns:PurchasePrice[1]", oManager).InnerText);
+                    var shipQty = Convert.ToDouble(element.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:LineItems/ns:LineItem[" + i + "]/ns:InvoiceLine/ns:ShipQty[1]", oManager).InnerText);
+
+                    var lineTotal = purchasePrice * shipQty;
+                    grandTotal += lineTotal;
+
+                    var s = DoFormat(lineTotal);
+                    element.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:LineItems/ns:LineItem[" + i + "]/ns:InvoiceLine/ns:ExtendedItemTotal[1]", oManager).InnerText = s;
                 }
                 catch (Exception e) { Console.WriteLine("Error: Issue with <LineItem Row(" + i + ")>/<ExtendedItemTotal>"); }
             }
+            
+            ////TermsDeferredAmountDue
+            try
+            {
+                var s = DoFormat(grandTotal);
+                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Header/ns:PaymentTerms/ns:TermsDeferredAmountDue[1]", oManager).InnerText = s;
+            }
+            catch (Exception e) { Console.WriteLine("Warning: Element not found - <TermsDeferredAmountDue>"); }
+
+            ////TotalAmount
+            try
+            {
+                var s = DoFormat(grandTotal);
+                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:TotalAmount[1]", oManager).InnerText = s;
+            }
+            catch (Exception e) { Console.WriteLine("Warning: Element not found - <TotalAmount>"); }
+
+            ////TotalNetSalesAmount
+            try
+            {
+                var s = DoFormat(grandTotal);
+                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:TotalNetSalesAmount[1]", oManager).InnerText = s;
+            }
+            catch (Exception e) { Console.WriteLine("Warning: Element not found - <TotalNetSalesAmount>"); }
+
+            ////InvoiceAmtDueByTermsDate
+            try
+            {
+                var s = DoFormat(grandTotal);
+                xDoc.SelectSingleNode("/ns:Invoices/ns:Invoice/ns:Summary/ns:InvoiceAmtDueByTermsDate[1]", oManager).InnerText = s;
+            }
+            catch (Exception e) { Console.WriteLine("Warning: Element not found - <InvoiceAmtDueByTermsDate>"); }
+            
 
             xDoc.Save(file);
             Console.WriteLine("End File ----------------------------------------------------\n\n");
         }
-
-        private static string PercentConversion(string val)
-        {
-            var doubleConv = Convert.ToDouble(val);
-            var percentConv = doubleConv + (doubleConv * 2 / 100);
-
-            var newStringVal = DoFormat(percentConv);
-
-            return newStringVal;
-        }
-
+        
         public static string DoFormat(double myNumber)
         {
             var s = string.Format("{0:0.00}", myNumber);
-
-            if (s.EndsWith("00"))
-            {
-                return ((int)myNumber).ToString();
-            }
-            else
-            {
-                return s;
-            }
+            return s;
         }
     }
 }
